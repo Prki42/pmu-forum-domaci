@@ -1,19 +1,19 @@
 import React from 'react';
 import { Control, Controller } from 'react-hook-form';
-import { Text, TextInput } from 'react-native';
+import { Text, TextInput, TextInputProps } from 'react-native';
 
 import styles from './FormInputField.styles';
 
 type FormInputFieldProps = {
   control: Control<any, any>;
   name: string;
-  placeholder: string;
+  textInputOptions?: TextInputProps;
 };
 
 const FormInputField: React.FC<FormInputFieldProps> = ({
   control,
   name,
-  placeholder,
+  textInputOptions,
 }) => {
   return (
     <Controller
@@ -24,10 +24,10 @@ const FormInputField: React.FC<FormInputFieldProps> = ({
       }) => (
         <>
           <TextInput
-            placeholder={placeholder}
             value={value}
             onChangeText={onChange}
             onBlur={onBlur}
+            {...textInputOptions}
           />
           <Text>{error?.message}</Text>
         </>

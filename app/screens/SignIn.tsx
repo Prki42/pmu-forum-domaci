@@ -1,25 +1,22 @@
-import React from 'react';
+import React, { useContext } from 'react';
 import { Button, SafeAreaView, StyleSheet, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
-import * as Yup from 'yup';
 
+import axios from 'axios';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
-import { RootStackParamList } from '../navigation/Navigator';
+import { AuthStackParamList } from '../navigation/Navigator';
 import FormInputField from '../components/FormInputField';
+import { AuthContext } from '../contexts/AuthContext';
+import {
+  apiEndpoints,
+  apiUrl,
+  SignInForm,
+  signInFormValidationSchema,
+} from '../lib/api';
 
-type SignInForm = {
-  mail: string;
-  password: string;
-};
-
-const signInFormValidationSchema = Yup.object().shape({
-  mail: Yup.string().required('Email is required').email('Email is invalid'),
-  password: Yup.string().required('Password is required'),
-});
-
-type Props = NativeStackScreenProps<RootStackParamList, 'SignIn'>;
+type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 
 const SignIn: React.FC<Props> = ({ navigation }) => {
   const { control, handleSubmit } = useForm<SignInForm>({
@@ -27,8 +24,13 @@ const SignIn: React.FC<Props> = ({ navigation }) => {
     mode: 'onTouched',
   });
 
+  const { setAuth } = useContext(AuthContext);
+
   const onSubmit = (data: SignInForm) => {
-    console.log(JSON.stringify(data, null, 2));
+    axios
+      .post(apiUrl + apiEndpoints.users, data)
+      .then((resp) => setAuth(resp.data.token))
+      .catch(() => {});
   };
 
   return (
@@ -38,14 +40,16 @@ const SignIn: React.FC<Props> = ({ navigation }) => {
         onPress={() => navigation.navigate('SignUp')}
       />
 
-      <Text>Email</Text>
-      <FormInputField control={control} name="mail" placeholder="Email" />
+      <FormInputField
+        control={control}
+        name="username"
+        textInputOptions={{ placeholder: 'Username', autoCapitalize: 'none' }}
+      />
 
-      <Text>Password</Text>
       <FormInputField
         control={control}
         name="password"
-        placeholder="Password"
+        textInputOptions={{ placeholder: 'Password', secureTextEntry: true }}
       />
 
       <Button title="Sign In" onPress={handleSubmit(onSubmit)} />
