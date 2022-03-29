@@ -1,4 +1,5 @@
-import React, { useContext } from 'react';
+import React from 'react';
+import { Text } from 'react-native';
 
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createDrawerNavigator } from '@react-navigation/drawer';
@@ -6,7 +7,8 @@ import { createDrawerNavigator } from '@react-navigation/drawer';
 import SignIn from '../screens/SignIn';
 import SignUp from '../screens/SignUp';
 import Profile from '../screens/Profile';
-import { AuthContext } from '../contexts/AuthContext';
+import useStore from '../store/useStore';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export type AuthStackParamList = {
   SignIn: undefined;
@@ -43,22 +45,32 @@ const AppDrawerScreen = () => (
 );
 
 export const Navigator: React.FC = () => {
-  const { token, setAuth } = useContext(AuthContext);
+  const isLoggedIn = useStore((state) => state.isLoggedIn);
+  const isReadingToken = useStore((state) => state.isInitTokenGet);
+
   return (
-    <RootStack.Navigator>
-      {token ? (
-        <RootStack.Screen
-          name="App"
-          component={AppDrawerScreen}
-          options={{ headerShown: false }}
-        />
+    <>
+      {isReadingToken ? (
+        <SafeAreaView>
+          <Text>Loading token</Text>
+        </SafeAreaView>
       ) : (
-        <RootStack.Screen
-          name="Auth"
-          component={AuthStackScreen}
-          options={{ headerShown: false }}
-        />
+        <RootStack.Navigator>
+          {isLoggedIn ? (
+            <RootStack.Screen
+              name="App"
+              component={AppDrawerScreen}
+              options={{ headerShown: false }}
+            />
+          ) : (
+            <RootStack.Screen
+              name="Auth"
+              component={AuthStackScreen}
+              options={{ headerShown: false }}
+            />
+          )}
+        </RootStack.Navigator>
       )}
-    </RootStack.Navigator>
+    </>
   );
 };

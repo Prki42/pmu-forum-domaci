@@ -1,36 +1,27 @@
-import React, { useContext } from 'react';
+import React, { useState } from 'react';
 import { Button, SafeAreaView, StyleSheet, Text } from 'react-native';
 import { useForm } from 'react-hook-form';
 
-import axios from 'axios';
 import { yupResolver } from '@hookform/resolvers/yup';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AuthStackParamList } from '../navigation/Navigator';
 import FormInputField from '../components/FormInputField';
-import { AuthContext } from '../contexts/AuthContext';
-import {
-  apiEndpoints,
-  apiUrl,
-  SignInForm,
-  signInFormValidationSchema,
-} from '../lib/api';
+import { SignInFormData, signInFormValidationSchema } from '../lib/api';
+import useStore from '../store/useStore';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 
 const SignIn: React.FC<Props> = ({ navigation }) => {
-  const { control, handleSubmit } = useForm<SignInForm>({
+  const { control, handleSubmit } = useForm<SignInFormData>({
     resolver: yupResolver(signInFormValidationSchema),
     mode: 'onTouched',
   });
 
-  const { setAuth } = useContext(AuthContext);
+  const login = useStore((state) => state.login);
 
-  const onSubmit = (data: SignInForm) => {
-    axios
-      .post(apiUrl + apiEndpoints.users, data)
-      .then((resp) => setAuth(resp.data.token))
-      .catch(() => {});
+  const onSubmit = (data: SignInFormData) => {
+    login(data);
   };
 
   return (

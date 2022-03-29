@@ -1,14 +1,19 @@
-import React, { useContext } from 'react';
+import React from 'react';
 import { Button, SafeAreaView, Text } from 'react-native';
-import { AuthContext } from '../contexts/AuthContext';
+import useStore from '../store/useStore';
 
 const Profile: React.FC = () => {
-  const { setAuth } = useContext(AuthContext);
+  const logout = useStore((state) => state.logout);
 
   return (
     <SafeAreaView>
       <Text>Profile</Text>
-      <Button title="Logout" onPress={() => setAuth('')} />
+      <Button
+        title="Logout"
+        onPress={() => {
+          logout();
+        }}
+      />
     </SafeAreaView>
   );
 };
