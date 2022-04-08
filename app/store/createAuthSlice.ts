@@ -1,59 +1,76 @@
 import { StoreSlice } from './helpers';
-import http from '../lib/http';
-import { apiEndpoints, SignInFormData, SignInResponse } from '../lib/api';
-import * as SecureStore from 'expo-secure-store';
+import { SignInResponse, UserData } from '../lib/api';
 
 export type AuthSlice = {
-  token: string;
+  _hasHydrated: boolean;
+  setHasHydrated: (h: boolean) => void;
+
+  token: string | undefined;
   isLoggedIn: boolean;
+
   hasAuthError: boolean;
-  isInitTokenGet: boolean;
-  doneInitTokenGet: () => void;
+  authError: string | undefined;
+
+  userData: UserData | undefined;
+
   setToken: (t: string) => void;
-  login: (userData: SignInFormData) => void;
+  setUserData: (data: UserData) => void;
+  login: (data: SignInResponse) => void;
+  loginFail: (err: string) => void;
   logout: () => void;
 };
 
 const createAuthSlice: StoreSlice<AuthSlice> = (set, get) => ({
+  _hasHydrated: false,
+  setHasHydrated: (h) => {
+    set((state) => ({ ...state, _hasHydrated: h }));
+  },
+
   token: '',
   isLoggedIn: false,
+
+  userData: undefined,
+
   hasAuthError: false,
-  isInitTokenGet: true,
-  doneInitTokenGet: () => {
-    set((state) => ({ ...state, isInitTokenGet: false }));
-  },
-  setToken: async (t) => {
+  authError: undefined,
+
+  setToken: (t) => {
     set((state) => ({
       ...state,
       token: t,
       isLoggedIn: true,
     }));
-    try {
-      await SecureStore.setItemAsync('token', t);
-    } catch (err) {
-      console.log(err);
-    }
   },
-  login: async (userData) => {
-    try {
-      const resp = await http.post<SignInResponse>(
-        apiEndpoints.users,
-        userData
-      );
-      get().setToken(resp.data.token);
-      set((state) => ({ ...state, hasAuthError: false }));
-    } catch (err) {
-      console.log(err);
-      set((state) => ({ ...state, isLoggedIn: false, hasAuthError: true }));
-    }
+  login: (data) => {
+    set((state) => ({
+      ...state,
+      token: data.token,
+      isLoggedIn: true,
+      hasAuthError: false,
+      userData: data.user,
+    }));
   },
-  logout: async () => {
-    set((state) => ({ ...state, token: '', isLoggedIn: false }));
-    try {
-      await SecureStore.deleteItemAsync('token');
-    } catch (err) {
-      console.log(err);
-    }
+  loginFail: (err) => {
+    set((state) => ({
+      ...state,
+      isLoggedIn: false,
+      hasAuthError: true,
+      authError: err,
+    }));
+  },
+  logout: () => {
+    set((state) => ({
+      ...state,
+      token: '',
+      isLoggedIn: false,
+      hasAuthError: false,
+    }));
+  },
+  setUserData: (data) => {
+    set((state) => ({
+      ...state,
+      userData: data,
+    }));
   },
 });
 

@@ -7,8 +7,14 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 
 import { AuthStackParamList } from '../navigation/Navigator';
 import FormInputField from '../components/FormInputField';
-import { SignInFormData, signInFormValidationSchema } from '../lib/api';
+import {
+  apiEndpoints,
+  SignInFormData,
+  signInFormValidationSchema,
+  SignInResponse,
+} from '../lib/api';
 import useStore from '../store/useStore';
+import http from '../lib/http';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'SignIn'>;
 
@@ -19,9 +25,22 @@ const SignIn: React.FC<Props> = ({ navigation }) => {
   });
 
   const login = useStore((state) => state.login);
+  const loginFail = useStore((state) => state.loginFail);
+  const hasLoginFailed = useStore((state) => state.hasAuthError);
+  const loginErr = useStore((state) => state.authError);
 
-  const onSubmit = (data: SignInFormData) => {
-    login(data);
+  const [isLoggingIn, setIsLogginIn] = useState<boolean>(false);
+
+  const onSubmit = async (data: SignInFormData) => {
+    setIsLogginIn(true);
+    try {
+      const resp = await http.post<SignInResponse>(apiEndpoints.users, data);
+      login(resp.data);
+    } catch (err) {
+      console.log(err);
+      loginFail('Login failed');
+    }
+    setIsLogginIn(false);
   };
 
   return (
@@ -44,6 +63,12 @@ const SignIn: React.FC<Props> = ({ navigation }) => {
       />
 
       <Button title="Sign In" onPress={handleSubmit(onSubmit)} />
+
+      {isLoggingIn ? (
+        <Text>Loggin in...</Text>
+      ) : (
+        hasLoginFailed && <Text>{loginErr}</Text>
+      )}
     </SafeAreaView>
   );
 };

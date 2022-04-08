@@ -46,11 +46,11 @@ const AppDrawerScreen = () => (
 
 export const Navigator: React.FC = () => {
   const isLoggedIn = useStore((state) => state.isLoggedIn);
-  const isReadingToken = useStore((state) => state.isInitTokenGet);
+  const hasHydrated = useStore((state) => state._hasHydrated);
 
   return (
     <>
-      {isReadingToken ? (
+      {!hasHydrated ? (
         <SafeAreaView>
           <Text>Loading token</Text>
         </SafeAreaView>
